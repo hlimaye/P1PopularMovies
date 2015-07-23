@@ -39,8 +39,11 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
+    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+
     // The GridView by default handles TextView. This is a custom array adapter that display movie poster images.
-    private MovieAdapter movieAdapter;
+    private MovieAdapter mMovieAdapter;
+    private ArrayList<Movie> mMovieList;
 
     // member variable stores position of the movie
     private int mPosition = ListView.INVALID_POSITION;
@@ -51,7 +54,13 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
+            mMovieList = new ArrayList<Movie>();
+        }
+        else {
+            Log.i(LOG_TAG, "Retrieving movies from saved state");
+            mMovieList = savedInstanceState.getParcelableArrayList("movies");
+        }
         /* Indicates this activity has overflow menu items. It was set to true to add "Refresh" menu for easy debugging.
         * Commented for production release
         */
@@ -82,6 +91,12 @@ public class MainActivityFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.i(LOG_TAG, "Saving movies to saved state");
+        outState.putParcelableArrayList("movies", mMovieList);
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -89,12 +104,12 @@ public class MainActivityFragment extends Fragment {
 
         View rootview = inflater.inflate(R.layout.fragment_main, container, false);
 
-        // The custom array movie adapter is instantiated with an empty Movies array list.
-        movieAdapter = new MovieAdapter(getActivity(), new ArrayList<Movie>());
+        // The custom array movie adapter is instantiated with a Movies array list.
+        mMovieAdapter = new MovieAdapter(getActivity(), mMovieList);
 
         // Bind custom adapter to the grid view
         GridView gridView = (GridView) rootview.findViewById(R.id.gridview_movies);
-        gridView.setAdapter(movieAdapter);
+        gridView.setAdapter(mMovieAdapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -177,8 +192,9 @@ public class MainActivityFragment extends Fragment {
             }
 
             Log.i(LOG_TAG, "Number of movies found in the list:" + movies.length);
-            return Arrays.asList(movies);
+            mMovieList = new ArrayList<Movie>(Arrays.asList(movies));
 
+            return mMovieList;
         }
 
         @Override
@@ -276,8 +292,8 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(List<Movie> result) {
             if (result != null) {
                 // first clear the old movies list and then add the new list.
-                movieAdapter.clear();
-                movieAdapter.addAll(result);
+                mMovieAdapter.clear();
+                mMovieAdapter.addAll(result);
                 // New data is back from the server.  Hooray!
             }
         }
