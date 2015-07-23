@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * This is the main activity fragment that fetches a list of 20 movies from the moviedb.
- * Movies are displayed in a grid view and sorted based upon the users preference.
+ * Movies are displayed in a grid view and sorted based upon the users preference on settings panel.
  */
 public class MainActivityFragment extends Fragment {
 
