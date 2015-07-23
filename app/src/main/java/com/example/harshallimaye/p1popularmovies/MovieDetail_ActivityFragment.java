@@ -25,11 +25,14 @@ public class MovieDetail_ActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
 
 
-        // The detail Activity called via intent.  Inspect the intent for forecast data.
+        // The detail Activity called via intent.  Inspect the intent for movie attributes passed as string array.
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
+
+            // Movie attributes are in this string array in this sequence:
+            // Original title, Poster Path, Synopsis, Rating, Release Date
             String[] movieDetail =  intent.getStringArrayExtra(Intent.EXTRA_TEXT);
 
             TextView title = (TextView) rootView.findViewById(R.id.movie_detail_title);

@@ -2,6 +2,7 @@ package com.example.harshallimaye.p1popularmovies;
 
 /**
  * Created by harshallimaye on 7/15/15.
+ * This is a custom Movie class encapsulating the movie attributes
  */
 public class Movie {
     String title;

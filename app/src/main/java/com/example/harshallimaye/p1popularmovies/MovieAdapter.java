@@ -13,6 +13,7 @@ import java.util.List;
 
 /**
  * Created by harshallimaye on 7/15/15.
+ * Custom Array Adapter to override the default TextView with ImageView
  */
 public class MovieAdapter extends ArrayAdapter<Movie> {
 
@@ -23,21 +24,19 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
+        // Get the current movie object from the grid and render the new image view
         Movie movie = getItem(position);
-        //View rootview = LayoutInflater.from(getContext()).inflate(R.layout.grid_view_item_movie, parent, false);
+
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.grid_view_item_movie, parent, false);
         }
 
-        //TextView textView = (TextView) convertView.findViewById(R.id.movie_title);
-        //textView.setText(movie.title);
-
         ImageView imageView = (ImageView) convertView.findViewById(R.id.movie_item_poster);
 
         String url = "http://image.tmdb.org/t/p/w185" + movie.posterPath;
-        Picasso.with(getContext()).load(url).into(imageView);
-        //iconView.setImageResource(movie.image);
 
+        // Uses the Picasso image library for efficient image caching and rendition.
+        Picasso.with(getContext()).load(url).into(imageView);
         return convertView;
     }
 }

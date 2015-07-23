@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ListView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,11 +34,16 @@ import java.util.List;
 
 
 /**
- * A placeholder fragment containing a simple view.
+ * This is the main activity fragment that fetches a list of 20 movies from the moviedb.
+ * Movies are displayed in a grid view and sorted based upon the users preference.
  */
 public class MainActivityFragment extends Fragment {
 
+    // The GridView by default handles TextView. This is a custom array adapter that display movie poster images.
     private MovieAdapter movieAdapter;
+
+    // member variable stores position of the movie
+    private int mPosition = ListView.INVALID_POSITION;
 
     public MainActivityFragment() {
     }
@@ -45,7 +51,11 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+
+        /* Indicates this activity has overflow menu items. It was set to true to add "Refresh" menu for easy debugging.
+        * Commented for production release
+        */
+        //setHasOptionsMenu(true);
     }
 
     @Override
@@ -60,13 +70,15 @@ public class MainActivityFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        /* Refresh menu is commented for production release
+        *
+
         if (id == R.id.action_refresh) {
             //Toast.makeText(getActivity(), "Update Movies", Toast.LENGTH_SHORT);
             updateMovies();
             return true;
         }
-
+        */
         return super.onOptionsItemSelected(item);
     }
 
@@ -77,19 +89,26 @@ public class MainActivityFragment extends Fragment {
 
         View rootview = inflater.inflate(R.layout.fragment_main, container, false);
 
-        movieAdapter = new MovieAdapter(getActivity(), new ArrayList<Movie>()); //Arrays.asList(movies)); ////
+        // The custom array movie adapter is instantiated with an empty Movies array list.
+        movieAdapter = new MovieAdapter(getActivity(), new ArrayList<Movie>());
+
+        // Bind custom adapter to the grid view
         GridView gridView = (GridView) rootview.findViewById(R.id.gridview_movies);
         gridView.setAdapter(movieAdapter);
+
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                // Obtain the movie that was clicked from the list of movies
                 Movie movie = (Movie) parent.getAdapter().getItem(position);
 
+                // Invoke the movie detail activity using explicit intents
                 Intent intent = new Intent(getActivity(), MovieDetail_Activity.class);
+                // Movie attributes are sent to the detail activity using string array.
                 String[] movieDetail = {movie.title, movie.posterPath, movie.overview, Double.toString(movie.rating), movie.release_dt};
                 intent.putExtra(Intent.EXTRA_TEXT, movieDetail);
                 startActivity(intent);
-                //Toast.makeText(getActivity(), "This will launch moview detail", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -99,11 +118,17 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        // Updates the list of movies on start
         updateMovies();
     }
 
+    /* This function uses an async task to fetch and update the list of movies
+
+     */
     private void updateMovies() {
         FetchMoviesTask movieTask = new FetchMoviesTask();
+
+        // Get user's sort by preference from Settings.
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_order = prefs.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_default_sort_key));
@@ -114,47 +139,15 @@ public class MainActivityFragment extends Fragment {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
-        /* The date/time conversion code is going to be moved outside the asynctask later,
-         * so for convenience we're breaking it out into its own method now.
-         */
-        /*private String getReadableDateString(long time){
-            // Because the API returns a unix timestamp (measured in seconds),
-            // it must be converted to milliseconds in order to be converted to valid date.
-            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
-            return shortenedDateFormat.format(time);
-        }*/
-
         /**
-         * Prepare the weather high/lows for presentation.
-         */
-        /*private String formatHighLows(double high, double low, String unitType) {
-
-            if (unitType.equals(getString(R.string.pref_units_imperial))) {
-                high = (high * 1.8) + 32;
-                low = (low * 1.8) + 32;
-            } else if (!unitType.equals(getString(R.string.pref_units_metric))) {
-                Log.d(LOG_TAG, "Unit type not found: " + unitType);
-            }
-
-            // For presentation, assume the user doesn't care about tenths of a degree.
-            long roundedHigh = Math.round(high);
-            long roundedLow = Math.round(low);
-
-            String highLowStr = roundedHigh + "/" + roundedLow;
-            return highLowStr;
-        }*/
-
-        /**
-         * Take the String representing the complete forecast in JSON Format and
+         * Take the String representing the complete movie list in JSON Format and
          * pull out the data we need to construct the Strings needed for the wireframes.
-         * <p/>
-         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-         * into an Object hierarchy for us.
+         *
          */
         private List<Movie> getMovieDataFromJson(String moviesJsonStr)
                 throws JSONException {
 
-
+            Log.i(LOG_TAG, "Creating array list of Movie objects from the JSON response");
             // These are the names of the JSON objects that need to be extracted.
 
             final String MDB_LIST = "results";
@@ -168,15 +161,8 @@ public class MainActivityFragment extends Fragment {
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(MDB_LIST);
 
-
             Movie[] movies = new Movie[moviesArray.length()];
 
-            /*SharedPreferences sharedPrefs =
-                    PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String unitType = sharedPrefs.getString(
-                    getString(R.string.pref_units_key),
-                    getString(R.string.pref_units_metric));
-            */
             for (int i = 0; i < moviesArray.length(); i++) {
                 // Get the JSON object representing the movie
                 JSONObject moviesJSONObj = moviesArray.getJSONObject(i);
@@ -190,14 +176,15 @@ public class MainActivityFragment extends Fragment {
                 );
             }
 
-            return Arrays.asList(movies); //resultStrs;
+            Log.i(LOG_TAG, "Number of movies found in the list:" + movies.length);
+            return Arrays.asList(movies);
 
         }
 
         @Override
         protected List<Movie> doInBackground(String... params) {
 
-            Log.i(LOG_TAG, "Inside background task");
+            Log.i(LOG_TAG, "Connecting to the movie db to fetch movies");
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             //if (params.length == 0) {
             //    return null;
@@ -211,10 +198,7 @@ public class MainActivityFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String moviesJsonStr = null;
 
-
-
             String sort_by = params[0];
-            String api_key = "1c73f86b0ed8d262c5f7c7e5ebf43575";
 
             try {
                 // Construct the URL for the Movie DB query
@@ -225,7 +209,7 @@ public class MainActivityFragment extends Fragment {
 
                 Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                         .appendQueryParameter(SORT_PARAM, sort_by)
-                        .appendQueryParameter(APIKEY_PARAM, api_key)
+                        .appendQueryParameter(APIKEY_PARAM, getString(R.string.api_key))//api_key)
                         .build();
 
                 URL url = new URL(builtUri.toString());
@@ -258,8 +242,8 @@ public class MainActivityFragment extends Fragment {
                 }
                 moviesJsonStr = buffer.toString();
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attempting
+                Log.e(LOG_TAG, "Error while calling movie db api ", e);
+                // If the code didn't successfully get the movie data, there's no point in attempting
                 // to parse it.
                 return null;
             } finally {
@@ -284,17 +268,16 @@ public class MainActivityFragment extends Fragment {
             }
 
             // This will only happen if there was an error getting or parsing the movies JSON.
+            Log.i(LOG_TAG, "Something went wrong in parsing the JSON response");
             return null;
         }
 
         @Override
         protected void onPostExecute(List<Movie> result) {
             if (result != null) {
+                // first clear the old movies list and then add the new list.
                 movieAdapter.clear();
                 movieAdapter.addAll(result);
-                //for (Movie movie : result) {
-                //    movieAdapter.add(movie);
-                //}
                 // New data is back from the server.  Hooray!
             }
         }

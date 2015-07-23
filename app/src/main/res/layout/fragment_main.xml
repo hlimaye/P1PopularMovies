@@ -1,7 +1,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    tools:context=".MainActivityFragment">
+    android:layout_height="match_parent" android:paddingLeft="@dimen/abc_action_bar_navigation_padding_start_material"
+    tools:context=".MainActivityFragment"
+    android:background="@android:color/background_dark">
 
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/gridview_movies"
