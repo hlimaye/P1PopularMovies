@@ -1,6 +1,6 @@
 <resources>
     <!-- Replace [YOUR_KEY] with the api key assigned by themoviedb.ord -->
-    <string name="api_key" translatable="false">[YOUR_KEY]</string>
+    <string name="api_key" translatable="false">1c73f86b0ed8d262c5f7c7e5ebf43575</string>
     <string name="app_name">Pop Movies</string>
     <string name="action_refresh" translatable="false">Refresh</string>
 

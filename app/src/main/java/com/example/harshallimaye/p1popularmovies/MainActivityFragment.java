@@ -1,7 +1,10 @@
 package com.example.harshallimaye.p1popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,15 +60,13 @@ public class MainActivityFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
             mMovieList = new ArrayList<Movie>();
+            // call the movies db and get the movie list.
+            updateMovies();
         }
         else {
             Log.i(LOG_TAG, "Retrieving movies from saved state");
             mMovieList = savedInstanceState.getParcelableArrayList("movies");
         }
-        /* Indicates this activity has overflow menu items. It was set to true to add "Refresh" menu for easy debugging.
-        * Commented for production release
-        */
-        //setHasOptionsMenu(true);
     }
 
     @Override
@@ -79,15 +81,6 @@ public class MainActivityFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        /* Refresh menu is commented for production release
-        *
-
-        if (id == R.id.action_refresh) {
-            //Toast.makeText(getActivity(), "Update Movies", Toast.LENGTH_SHORT);
-            updateMovies();
-            return true;
-        }
-        */
         return super.onOptionsItemSelected(item);
     }
 
@@ -133,14 +126,26 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Updates the list of movies on start
-        updateMovies();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     /* This function uses an async task to fetch and update the list of movies
 
      */
     private void updateMovies() {
+
+        if(!isNetworkAvailable()) {
+            Log.i(LOG_TAG, "No internet connection!");
+            Toast.makeText(getActivity(), "Oops no internet connection! Please try later", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         FetchMoviesTask movieTask = new FetchMoviesTask();
 
         // Get user's sort by preference from Settings.

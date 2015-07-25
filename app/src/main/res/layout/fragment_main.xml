@@ -4,6 +4,13 @@
     tools:context=".MainActivityFragment"
     android:background="@android:color/background_dark">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:id="@+id/message_text_view"
+        android:text="Message"/>
+
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/gridview_movies"
         android:layout_width="match_parent"
@@ -15,4 +22,5 @@
         android:stretchMode="columnWidth"
         android:gravity="center"
         />
+
 </FrameLayout>
