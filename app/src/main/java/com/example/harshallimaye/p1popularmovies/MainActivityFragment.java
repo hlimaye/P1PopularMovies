@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -50,24 +49,43 @@ public class MainActivityFragment extends Fragment {
     private ArrayList<Movie> mMovieList;
 
     // member variable stores position of the movie
-    private int mPosition = ListView.INVALID_POSITION;
+    private String mSortOrder = null;
 
     public MainActivityFragment() {
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
+        Log.i(LOG_TAG, "");
+        // Get user's sort by preference from Settings.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sort_order = prefs.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_default_sort_key));
+
+        if(savedInstanceState == null) {
+            Log.i(LOG_TAG, "New instance created");
+            // initialize to default values
             mMovieList = new ArrayList<Movie>();
-            // call the movies db and get the movie list.
+            mSortOrder = sort_order; //getString(R.string.pref_default_sort_key);
+            Log.i(LOG_TAG,"Let's fetch the movie list");
+            // fetch movie list
             updateMovies();
         }
         else {
-            Log.i(LOG_TAG, "Retrieving movies from saved state");
+            Log.i(LOG_TAG, "Recreating previous instance, let's restore saved state");
+            // movies list retrieved from saved state, no need to fetch it again from movie database.
             mMovieList = savedInstanceState.getParcelableArrayList("movies");
+            mSortOrder = savedInstanceState.getString("sortOrder");
+            if(!mSortOrder.equals(sort_order)) {
+                Log.i(LOG_TAG,"User has changed sort order, let's fetch the movie list");
+                mSortOrder = sort_order;
+                updateMovies();
+            }
+
         }
+        super.onCreate(savedInstanceState);
     }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -88,6 +106,7 @@ public class MainActivityFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         Log.i(LOG_TAG, "Saving movies to saved state");
         outState.putParcelableArrayList("movies", mMovieList);
+        outState.putString("sortOrder", mSortOrder);
         super.onSaveInstanceState(outState);
     }
 
@@ -124,8 +143,20 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        Log.i(LOG_TAG, "onResume...");
+        // Get user's sort by preference from Settings.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sort_order = prefs.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_default_sort_key));
+
+        if(!mSortOrder.equals(sort_order)) {
+            Log.i(LOG_TAG,"User has changed sort order, let's fetch the movie list");
+            mSortOrder = sort_order;
+            updateMovies();
+        }
+
+        super.onResume();
     }
 
     private boolean isNetworkAvailable() {

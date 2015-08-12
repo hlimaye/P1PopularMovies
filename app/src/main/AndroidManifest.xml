@@ -13,9 +13,11 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 
+        <!-- set launch mode of main activity from standard to singleTop for better UX -->
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
