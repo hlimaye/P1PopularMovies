@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="left"
+    android:gravity="start"
     android:orientation="vertical"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:padding="0dp"
@@ -15,7 +15,6 @@
 
     <TextView
         android:id="@+id/movie_detail_title"
-        android:text="Sample title"
         android:layout_width="fill_parent"
         android:layout_height="100dp"
         android:gravity="center"
@@ -42,11 +41,11 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_vertical"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:id="@+id/movie_detail">
 
             <TextView
                 android:id="@+id/movie_detail_release_dt"
-                android:text="2013/12/01"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-condensed"
@@ -58,19 +57,43 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-condensed"
                 android:textAppearance="?android:textAppearanceMedium"/>
+            <ToggleButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New ToggleButton"
+                android:id="@+id/favoriteToggleButton"
+                android:textOff="Star"
+                android:textOn="Unstar"/>
 
         </LinearLayout>
         </LinearLayout>
 
     <TextView
         android:id="@+id/movie_detail_overview"
-        android:text="Overview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-condensed"
         android:textAppearance="?android:textAppearanceSmall"
         android:paddingLeft="10dp"/>
 
+    <TextView
+        android:id="@+id/movie_trailers"
+        android:text="Trailers"
+        android:layout_width="fill_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-condensed"
+        android:textSize="@dimen/abc_text_size_display_1_material" />
+
+
+
+    <ListView
+        android:id="@+id/movie_trailers_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:drawSelectorOnTop="false">
+    </ListView>
 
 </LinearLayout>
+
 </ScrollView>

@@ -39,6 +39,8 @@ import java.util.List;
 /**
  * This is the main activity fragment that fetches a list of 20 movies from the moviedb.
  * Movies are displayed in a grid view and sorted based upon the users preference on settings panel.
+ *
+ * Modified the getMoviesFromJSONStr to get movie id.
  */
 public class MainActivityFragment extends Fragment {
 
@@ -133,7 +135,7 @@ public class MainActivityFragment extends Fragment {
                 // Invoke the movie detail activity using explicit intents
                 Intent intent = new Intent(getActivity(), MovieDetail_Activity.class);
                 // Movie attributes are sent to the detail activity using string array.
-                String[] movieDetail = {movie.title, movie.posterPath, movie.overview, Double.toString(movie.rating), movie.release_dt};
+                String[] movieDetail = {movie.title, movie.posterPath, movie.overview, Double.toString(movie.rating), movie.release_dt, movie.id};
                 intent.putExtra(Intent.EXTRA_TEXT, movieDetail);
                 startActivity(intent);
             }
@@ -202,6 +204,7 @@ public class MainActivityFragment extends Fragment {
             // These are the names of the JSON objects that need to be extracted.
 
             final String MDB_LIST = "results";
+            final String MDB_ID = "id";
             final String MDB_TITLE = "original_title";
             final String MDB_OVERVIEW = "overview";
             final String MDB_RELEASE_DATE = "release_date";
@@ -218,6 +221,7 @@ public class MainActivityFragment extends Fragment {
                 // Get the JSON object representing the movie
                 JSONObject moviesJSONObj = moviesArray.getJSONObject(i);
                 movies[i] = new Movie(
+                        moviesJSONObj.getString(MDB_ID),
                         moviesJSONObj.getString(MDB_TITLE),
                         moviesJSONObj.getString(MDB_OVERVIEW),
                         moviesJSONObj.getString(MDB_POSTER),
