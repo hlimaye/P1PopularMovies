@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Author's Name"
+        android:id="@+id/author_name"
+        android:layout_gravity="center_horizontal" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/review_content"
+        android:text="he Dark Knight Rises is one of the best movies to come out in 2012. The story compels you to watch it time and time again. It also has I of, I my opinion, the best bad guys in any movie, Bane! Batman was well played as all ways and the cast where well selected. I think this movie is the best batman to see the light of day or the darkest nights "/>
+</LinearLayout>

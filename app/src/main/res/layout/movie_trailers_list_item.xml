@@ -10,10 +10,13 @@
         android:background="@color/button_material_dark"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        style="@android:style/MediaButton.Play" />
+        style="@android:style/MediaButton.Play"
+        android:layout_margin="5dp"/>
     <TextView
         android:text="Trailer"
         android:id="@+id/trailer_title"
+        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:textAlignment="center"/>
  </LinearLayout>

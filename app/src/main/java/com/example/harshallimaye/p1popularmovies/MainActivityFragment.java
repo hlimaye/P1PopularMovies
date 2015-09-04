@@ -173,6 +173,16 @@ public class MainActivityFragment extends Fragment {
      */
     private void updateMovies() {
 
+        // Get user's sort by preference from Settings.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sort_order = prefs.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_default_sort_key));
+
+        if(sort_order.equals("favorites.asc"))
+        {
+            // get favorites movie list
+        }
+
         if(!isNetworkAvailable()) {
             Log.i(LOG_TAG, "No internet connection!");
             Toast.makeText(getActivity(), "Oops no internet connection! Please try later", Toast.LENGTH_LONG).show();
@@ -180,11 +190,6 @@ public class MainActivityFragment extends Fragment {
         }
 
         FetchMoviesTask movieTask = new FetchMoviesTask();
-
-        // Get user's sort by preference from Settings.
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sort_order = prefs.getString(getString(R.string.pref_sort_key),
-                getString(R.string.pref_default_sort_key));
         movieTask.execute(sort_order);
     }
 
