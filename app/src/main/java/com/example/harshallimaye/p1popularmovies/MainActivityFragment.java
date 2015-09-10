@@ -1,7 +1,6 @@
 package com.example.harshallimaye.p1popularmovies;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -21,6 +20,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +34,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -51,7 +55,21 @@ public class MainActivityFragment extends Fragment {
     private ArrayList<Movie> mMovieList;
 
     // member variable stores position of the movie
+    private  int mPosition = GridView.INVALID_POSITION;
     private String mSortOrder = null;
+
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Movie movie);
+    }
 
     public MainActivityFragment() {
     }
@@ -78,6 +96,8 @@ public class MainActivityFragment extends Fragment {
             // movies list retrieved from saved state, no need to fetch it again from movie database.
             mMovieList = savedInstanceState.getParcelableArrayList("movies");
             mSortOrder = savedInstanceState.getString("sortOrder");
+            mPosition = savedInstanceState.getInt("selectedMovie");
+
             if(!mSortOrder.equals(sort_order)) {
                 Log.i(LOG_TAG,"User has changed sort order, let's fetch the movie list");
                 mSortOrder = sort_order;
@@ -109,6 +129,7 @@ public class MainActivityFragment extends Fragment {
         Log.i(LOG_TAG, "Saving movies to saved state");
         outState.putParcelableArrayList("movies", mMovieList);
         outState.putString("sortOrder", mSortOrder);
+        outState.putInt("selectedMovie", mPosition);
         super.onSaveInstanceState(outState);
     }
 
@@ -129,17 +150,23 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                // save clicked position
+                mPosition = position;
                 // Obtain the movie that was clicked from the list of movies
                 Movie movie = (Movie) parent.getAdapter().getItem(position);
 
                 // Invoke the movie detail activity using explicit intents
-                Intent intent = new Intent(getActivity(), MovieDetail_Activity.class);
+                //Intent intent = new Intent(getActivity(), MovieDetail_Activity.class);
                 // Movie attributes are sent to the detail activity using string array.
-                String[] movieDetail = {movie.title, movie.posterPath, movie.overview, Double.toString(movie.rating), movie.release_dt, movie.id};
-                intent.putExtra(Intent.EXTRA_TEXT, movieDetail);
-                startActivity(intent);
+                //String[] movieDetail = {movie.title, movie.posterPath, movie.overview, Double.toString(movie.rating), movie.release_dt, movie.id};
+                //intent.putExtra(Intent.EXTRA_TEXT, movieDetail);
+                //startActivity(intent);
+
+                ((Callback) getActivity()).onItemSelected(movie);
             }
         });
+
+
 
         return rootview;
     }
@@ -161,6 +188,7 @@ public class MainActivityFragment extends Fragment {
         super.onResume();
     }
 
+
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -168,11 +196,32 @@ public class MainActivityFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    private List<Movie> getFavoriteMovies() {
+        // Fetch favorite movies stored in the database using content provider
+        SharedPreferences prefs = getActivity().getSharedPreferences("Favorite Movies", Context.MODE_PRIVATE);
+        Map favorites = prefs.getAll();
+
+        if (!favorites.isEmpty()) {
+            Collection<String> favoritesCollection = favorites.values();
+            List<Movie> movieList = new ArrayList<Movie>(favoritesCollection.size())  ;
+
+            for (Iterator iterator = favoritesCollection.iterator(); iterator.hasNext();) {
+                String movieStr = (String) iterator.next();
+                Gson gson = new Gson();
+                movieList.add(gson.fromJson(movieStr, Movie.class));
+            }
+
+            return movieList;
+        } else {
+            Log.i(LOG_TAG, "No favorites");
+            return null;
+        }
+    }
+
     /* This function uses an async task to fetch and update the list of movies
 
      */
     private void updateMovies() {
-
         // Get user's sort by preference from Settings.
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_order = prefs.getString(getString(R.string.pref_sort_key),
@@ -180,20 +229,51 @@ public class MainActivityFragment extends Fragment {
 
         if(sort_order.equals("favorites.asc"))
         {
-            // get favorites movie list
+            FetchFavoritesTask favoritesTask = new FetchFavoritesTask();
+            favoritesTask.execute(sort_order);
         }
 
-        if(!isNetworkAvailable()) {
-            Log.i(LOG_TAG, "No internet connection!");
-            Toast.makeText(getActivity(), "Oops no internet connection! Please try later", Toast.LENGTH_LONG).show();
-            return;
-        }
+        else {
+            if (!isNetworkAvailable()) {
+                Log.i(LOG_TAG, "No internet connection!");
+                Toast.makeText(getActivity(), "Oops no internet connection! Please try later", Toast.LENGTH_LONG).show();
+                return;
+            }
 
-        FetchMoviesTask movieTask = new FetchMoviesTask();
-        movieTask.execute(sort_order);
+            FetchMoviesTask movieTask = new FetchMoviesTask();
+            movieTask.execute(sort_order);
+        }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
+    public class FetchFavoritesTask extends AsyncTask<String, Void, List<Movie>> {
+
+        private final String LOG_TAG = FetchFavoritesTask.class.getSimpleName();
+
+        @Override
+        protected List<Movie> doInBackground(String... params) {
+
+            // get favorites movie list
+            List<Movie> favorites = getFavoriteMovies();
+            return favorites;
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> result) {
+            mMovieAdapter.clear();
+            if (result != null) {
+                // first clear the old movies list and then add the new list.
+                mMovieAdapter.addAll(result);
+                // New data is back from the server.  Hooray!
+            }
+            else {
+                Toast.makeText(getActivity(), "You don't have favorites. Change sort preference from settings panel to browse most popular or highest rated movies.", Toast.LENGTH_LONG).show();
+            }
+            super.onPostExecute(result);
+        }
+    }
+
+
+        public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 

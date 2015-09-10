@@ -1,7 +1,7 @@
 package com.example.harshallimaye.p1popularmovies;
 
 import android.content.Context;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.squareup.picasso.Picasso;
 
@@ -41,6 +42,7 @@ import java.util.List;
 public class MovieDetail_ActivityFragment extends Fragment {
 
     private final String LOG_TAG = MovieDetail_ActivityFragment.class.getSimpleName();
+    static final String DETAIL_URI = "URI";
 
     //private ArrayList<MovieTrailer> mTrailerList;
     //private ArrayList<MovieReview> mReviewsList;
@@ -53,6 +55,7 @@ public class MovieDetail_ActivityFragment extends Fragment {
     public MovieDetail_ActivityFragment() {
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -60,32 +63,49 @@ public class MovieDetail_ActivityFragment extends Fragment {
 
         // The detail Activity called via intent.  Inspect the intent for movie attributes passed as string array.
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
-        Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
+
+        Bundle args = getArguments();
+        if(args != null) {
+
+            Movie movie = (Movie) args.getParcelable(MovieDetail_ActivityFragment.DETAIL_URI);
+            Log.i(LOG_TAG, "Found argument" + movie.title);
+
+            //Intent intent = getActivity().getIntent();
+            //if (intent != null && intent.hasExtra("com.example.harshallimaye.p1popularmovies.movie")) {
 
             // Movie attributes are in this string array in this sequence:
             // Original title, Poster Path, Synopsis, Rating, Release Date
-            String[] movieDetail = intent.getStringArrayExtra(Intent.EXTRA_TEXT);
+
+            //Movie movie = (Movie) intent.getExtras().getParcelable("com.example.harshallimaye.p1popularmovies.movie");
+            //String[] movieDetail = intent.getStringArrayExtra(Intent.EXTRA_TEXT);
 
             TextView title = (TextView) rootView.findViewById(R.id.movie_detail_title);
-            title.setText(movieDetail[0]);
+            title.setText(movie.title);
 
             ImageView imageView = (ImageView) rootView.findViewById(R.id.movie_detail_poster);
 
-            String url = "http://image.tmdb.org/t/p/w185" + movieDetail[1];
+            String url = "http://image.tmdb.org/t/p/w185" + movie.posterPath;
             Picasso.with(getActivity()).load(url).into(imageView);
 
             TextView overview = (TextView) rootView.findViewById(R.id.movie_detail_overview);
-            overview.setText(movieDetail[2]);
+            overview.setText(movie.overview);
 
             TextView rating = (TextView) rootView.findViewById(R.id.movie_detail_rating);
-            rating.setText(movieDetail[3]);
+            rating.setText(Double.toString(movie.rating));
 
             TextView date = (TextView) rootView.findViewById(R.id.movie_detail_release_dt);
-            date.setText(movieDetail[4]);
+            date.setText(movie.release_dt);
 
-            String movieID = movieDetail[5];
+            String movieID = movie.id;
 
+            SharedPreferences prefs = getActivity().getSharedPreferences("Favorite Movies", Context.MODE_PRIVATE);
+            ToggleButton toggleBtn = (ToggleButton) rootView.findViewById(R.id.favoriteToggleButton);
+            if(prefs.getString(movieID, null) != null) {
+                toggleBtn.setChecked(true);
+            }
+            else {
+                toggleBtn.setChecked(false);
+            }
 
             // Bind the custom array adapter for movie trailers and update trailers
 
@@ -112,6 +132,7 @@ public class MovieDetail_ActivityFragment extends Fragment {
         }
         return rootView;
     }
+
 
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
