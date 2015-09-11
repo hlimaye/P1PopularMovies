@@ -15,7 +15,7 @@
     <string-array name="pref_sort_options">
         <item>Most Popular</item>
         <item>Highly Rated</item>
-        <item> My Favorites</item>
+        <item>My Favorites</item>
     </string-array>
     <string-array name="pref_sort_values">
         <item>popularity.desc</item>
